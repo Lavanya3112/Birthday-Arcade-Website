@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Birthday Arcade — Surprise</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+        .pixel { font-family: "Cambria",bold, system-ui, sans-serif; }
+        .soft-glow { text-shadow: 0 2px 12px rgba(0,0,0,0.12); }
+        .btn-like { transition: transform .12s ease, box-shadow .12s ease, background 0.2s ease; }
+        .btn-like:active { transform: translateY(2px) scale(.995); }
+        .btn-like:hover { transform: scale(1.05); box-shadow: 0 0 15px rgba(255,255,255,0.4); }
+
+        /* Balloons */
+        .balloon {
+            position: absolute;
+            bottom: -150px;
+            width: 60px;
+            height: 80px;
+            border-radius: 50% 50% 50% 50%;
+            opacity: 0.8;
+            animation: floatBalloon 12s linear infinite;
+        }
+        @keyframes floatBalloon {
+            0% { transform: translateY(0) scale(1); opacity: 0; }
+            10% { opacity: 1; }
+            100% { transform: translateY(-120vh) scale(1.1); opacity: 0; }
+        }
+
+/* Cake container */
+.cake {
+    position: fixed;
+    bottom: 20px;
+    right: 30px;
+    z-index: 50;
+}
+
+/* Cake body */
+.cake-body {
+    width: 160px;
+    height: 60px;
+    background: linear-gradient(to bottom, #ff9aa2, #ff6f91);
+    border-radius: 10px;
+    position: relative;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    overflow: visible; /* allow candles & flames outside */
+}
+
+/* White frosting on top */
+.cake-body::before {
+    content: '';
+    position: absolute;
+    top: -20px;
+    left: 0;
+    width: 100%;
+    height: 20px;
+    background: #fff;
+    border-radius: 10px 10px 0 0;
+}
+
+/* Candles wrapper */
+.candles {
+    display: flex;
+    justify-content: center;  /* centers candles horizontally */
+    gap: 18px;                /* space between candles */
+    position: absolute;
+    top: -45px;              /* above the cake */
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+/* Individual candle */
+.candle {
+    width: 12px;
+    height: 40px;
+    background: #fff;
+    border-radius: 3px;
+    position: relative;
+}
+
+/* Flame */
+.flame {
+    position: absolute;
+    top: -22px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 14px;
+    height: 22px;
+    background: radial-gradient(circle at 50% 60%, #ffeb3b, #ff9800 70%);
+    border-radius: 50%;
+    animation: flicker 0.25s infinite alternate;
+}
+
+/* Sprinkles */
+.sprinkle {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+}
+
+/* Flicker animation */
+@keyframes flicker {
+    0% { transform: translateX(-50%) scale(1); opacity: 1; }
+    50% { transform: translateX(-50%) scale(0.9); opacity: 0.8; }
+    100% { transform: translateX(-50%) scale(1); opacity: 1; }
+}
+/* Confetti around cake */
+@keyframes confetti {
+    0% { transform: translateY(0) rotate(0deg); opacity:1; }
+    100% { transform: translateY(-200px) rotate(360deg); opacity:0; }
+}
+
+.confetti {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    background: yellow;
+    top: 0;
+    left: 50%;
+    animation: confetti 2s linear infinite;
+}
+        
+        .terminal {
+            background: rgba(0,0,0,0.7);
+	    font-weight:bold;
+            color:purple;
+            font-family: cambria;
+            padding: 30px;
+            border-radius: 12px;
+            min-height: 140px;
+        }
+        .memory-modal {
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(10px);
+        }
+        .heart-animation {
+            animation: floatHeart 1.5s ease-out forwards;
+        }
+        @keyframes floatHeart {
+            0% { transform: scale(0); opacity: 0; }
+            20% { transform: scale(1.2); opacity: 1; }
+            40% { transform: scale(1); }
+            100% { transform: translateY(-100px) scale(0.8); opacity: 0; }
+        }
+        .letter-reveal {
+            animation: revealLetter 2s ease-out forwards;
+        }
+        @keyframes revealLetter {
+            0% { transform: scale(0) rotate(-10deg); opacity: 0; }
+            100% { transform: scale(1) rotate(0); opacity: 1; }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-purple-500 via-pink-400 to-yellow-300 min-h-screen flex items-center justify-center p-6 text-black">
+
+    <div id="balloonContainer" class="fixed inset-0 pointer-events-none z-30"></div>
+
+   <div class="cake">
+  <div class="cake-body">
+    <!-- Candles wrapper -->
+    <div class="candles">
+      <div class="candle"><div class="flame"></div></div>
+      <div class="candle"><div class="flame"></div></div>
+      <div class="candle"><div class="flame"></div></div>
+    </div>
+
+    <!-- Sprinkles -->
+    <div class="sprinkle" style="top:10px; left:10px; background:red;"></div>
+    <div class="sprinkle" style="top:20px; left:50px; background:yellow;"></div>
+    <div class="sprinkle" style="top:5px; left:100px; background:blue;"></div>
+    <div class="sprinkle" style="top:15px; left:130px; background:green;"></div>
+  </div>
+</div>
+
+    <canvas id="confetti" class="fixed inset-0 pointer-events-none z-10"></canvas>
+    
+    <div id="memoryModal" class="fixed inset-0 z-50 flex items-center justify-center memory-modal hidden opacity-0 transition-opacity duration-300">
+        <div class="bg-gradient-to-br from-purple-600 to-pink-500 rounded-xl p-6 max-w-md mx-4 relative">
+            <button id="closeMemory" class="absolute top-3 right-3 text-black/70 hover:text-black">
+                <i data-feather="x"></i>
+            </button>
+            <h3 class="text-lg font-bold pixel mb-4" id="memoryTitle">Memory Unlocked!</h3>
+            <p class="text-black/90 text-sm mb-4" id="memoryContent"></p>
+            <div class="text-center">
+                <div class="heart-animation inline-block text-red-500 text-3xl" id="heartAnimation">❤️</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="letterModal" class="fixed inset-0 z-50 flex items-center justify-center memory-modal hidden opacity-0 transition-opacity duration-500">
+        <div class="bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl p-6 max-w-md mx-4 relative letter-reveal">
+            <button id="closeLetter" class="absolute top-3 right-3 text-black/70 hover:text-black">
+                <i data-feather="x"></i>
+            </button>
+            <h3 class="text-lg font-bold pixel mb-4 text-center">🎉 SURPRISE LETTER 🎉</h3>
+            <div class="bg-black/10 p-4 rounded-lg border border-black/20">
+                <p class="text-black/90 text-sm leading-relaxed">
+                    Happy 19th Birthday, <span id="letterName">Birthday Boy</span>!<br><br>
+                    You've unlocked all the memories and collected all the hearts! Each achievement represents a special moment we've shared, and each heart symbolizes the love I have for you.<br><br>
+                    Here's to many more gaming sessions, laughter, and unforgettable memories together. You mean the world to me! ❤️<br><br>
+                    Love always,<br>
+                    Your Secret Admirer
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-3xl w-full space-y-6 relative z-20">
+        <header class="flex items-center gap-4" data-aos="fade-down">
+            <div class="w-20 h-20 rounded-lg bg-gradient-to-tr from-red-400 via-yellow-300 to-green-400 flex items-center justify-center pixel shadow-2xl soft-glow">
+                <div class="text-black">19</div>
+            </div>
+            <div>
+                <h1 class="text-3xl md:text-5xl font-bold pixel">Happy 19th Birthday, <span id="nameDisplay">Birthday Boy</span>!</h1>
+                <p class="text-sm text-black-100 mt-1">Click achievements to reveal memories and collect hearts! 🎮❤️</p>
+            </div>
+        </header>
+
+        <main class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <section class="col-span-1 space-y-3">
+                <div class="bg-gradient-to-br from-pink-400 via-purple-400 to-indigo-400 rounded-xl p-4" data-aos="fade-right">
+                    <h2 class="text-sm text-black font-semibold">Quick Actions</h2>
+                    <div class="mt-3 flex flex-col gap-2">
+                        <button id="unlockBtn" class="btn-like px-4 py-2 bg-amber-400/30 hover:bg-amber-500/50 rounded-lg text-black border border-amber-200">🔓 Unlock Random Achievement</button>
+                        <button id="hackerBtn" class="btn-like px-4 py-2 bg-red-400/30 hover:bg-red-500/50 rounded-lg text-black border border-red-200">💻 Start Hacker Prank</button>
+                        <button id="playSongBtn" class="btn-like px-4 py-2 bg-emerald-400/30 hover:bg-emerald-500/50 rounded-lg text-black border border-emerald-200">▶ Play Sample Track</button>
+                        <button id="fireworksBtn" class="btn-like px-4 py-2 bg-purple-400/30 hover:bg-purple-500/50 rounded-lg text-black border border-purple-200">🎆 Party Fireworks</button>
+                    </div>
+                    <p class="text-xs text-black/80 mt-3">Tip: Collect all hearts to unlock the surprise letter!</p>
+                </div>
+
+                <div class="bg-gradient-to-br from-green-300 via-cyan-400 to-blue-400 rounded-xl p-4 terminal" id="terminal" data-aos="fade-right" data-aos-delay="100">
+                    <div id="terminalText">> Ready.</div>
+                </div>
+
+                <div class="bg-gradient-to-br from-rose-400 via-red-400 to-pink-400 rounded-xl p-4" data-aos="fade-right" data-aos-delay="200">
+                    <h2 class="text-sm text-black font-semibold">Hearts Collected</h2>
+                    <div class="flex justify-center gap-2 mt-3" id="heartsContainer">
+                        </div>
+                    <p class="text-xs text-black/80 mt-3 text-center" id="progressText">0/17 hearts collected</p>
+                </div>
+            </section>
+
+            <section class="col-span-1 md:col-span-2 bg-gradient-to-br from-indigo-400 via-purple-400 to-pink-400 rounded-xl p-4 space-y-3" data-aos="fade-left">
+                <h2 class="text-sm text-black font-semibold">Achievements (17)</h2>
+                <div id="achievementsGrid" class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-3">
+                    </div>
+
+                <div class="mt-4 bg-black/20 p-3 rounded-md border border-black/30">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-xs text-black/80">Current unlocked:</p>
+                            <p id="currentUnlocked" class="text-sm text-black pixel">None yet.</p>
+                        </div>
+                        <div class="text-right text-xs text-black/70">
+                            <p>Score</p>
+                            <p id="score">0</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <audio id="sampleAudio" preload="none" src="starboy_remix.mp3"></audio>
+
+    <script>
+        AOS.init();
+        feather.replace();
+
+        /************* Customize these values *************/
+        const PERSON_NAME = "Birthday Boy";
+
+const ACHIEVEMENTS = [
+  "Always Plugged In 🎧",
+  "Chaos Certified 😈",
+  "Button Masher 🎮",
+  "Drama Max 🎭",
+  "Sound FX Boss 🔊",
+  "Glitchy Poker Face 🃏",
+  "Brain.exe Error 🤯",
+  "Fixes Random Stuff 🛠️",
+  "Meme Dealer 😂",
+  "Elite Music Taste 🎶",
+  "Coffee Powered ☕",
+  "Expert at Nothing 😌",
+  "Mood: Loading 😜",
+  "Pro Procrastinator ⏳",
+  "No Manual, Still Alive 🎉",
+  "Emoji Overload 😎",
+  "Main Character 🌟"
+];
+
+const MEMORIES = [
+    "Earbuds so attached, we’re not sure they’re removable anymore 🎧",
+    "Controller in hand, responsibilities ignored — balance achieved 🎮",
+    "Random sound effects at the worst possible timing 😆",
+    "Claims it’s ‘just one game’ — disappears for three hours",
+    "Every online space becomes slightly louder after arrival",
+    "Maintains a poker face until someone mentions food 🃏",
+    "Occasional brain-freeze moments that add character 🤯",
+    "Fixes things… but creates two new problems 🛠️",
+    "Sends memes like it’s a full-time job 😂",
+    "Music changes every mood without warning 🎶",
+    "Runs on caffeine and sheer confidence ☕⚡",
+    "Expert in overthinking absolutely nothing",
+    "Not moody, just emotionally buffering 😜",
+    "Deadlines are suggestions, not rules ⏳",
+    "Another year survived without reading instructions 🎉",
+    "Emoji usage strong enough to crash group chats 😎🔥",
+    "This website exists because chaos needed documentation 🌟"
+];
+        /**************************************************/
+
+        document.getElementById('nameDisplay').textContent = PERSON_NAME;
+        document.getElementById('letterName').textContent = PERSON_NAME;
+        document.getElementById('progressText').textContent = `0/${ACHIEVEMENTS.length} hearts collected`;
+        document.querySelector('#achievementsGrid').previousElementSibling.textContent = `Achievements (${ACHIEVEMENTS.length})`;
+
+        const container = document.getElementById('achievementsGrid');
+        const heartsContainer = document.getElementById('heartsContainer');
+        const colors = [
+            'from-pink-400 to-yellow-300',
+            'from-green-300 to-blue-400',
+            'from-purple-400 to-pink-300',
+            'from-indigo-300 to-purple-400',
+            'from-orange-300 to-pink-400',
+            'from-teal-300 to-cyan-400'
+        ];
+
+        // Create empty hearts
+        for (let i = 0; i < ACHIEVEMENTS.length; i++) {
+            const heart = document.createElement('div');
+            heart.className = 'text-2xl text-black/30';
+            heart.innerHTML = '🤍';
+            heart.id = 'heart-' + i;
+            heartsContainer.appendChild(heart);
+        }
+
+        ACHIEVEMENTS.forEach((a, i) => {
+            const tile = document.createElement('div');
+            tile.className = `px-3 py-4 rounded bg-gradient-to-br ${colors[i % colors.length]} border border-black/20 text-xs cursor-pointer transform transition-transform duration-200 hover:scale-105`;
+            tile.id = 'achv-' + i;
+            tile.innerHTML = `<div class="font-semibold text-black text-[10px]">#${i+1}</div><div class="mt-2 text-[11px]">${a}</div><div class="mt-3 text-black text-[10px] hidden">Unlocked</div>`;
+            
+            tile.addEventListener('click', () => {
+                if (tile.dataset.unlocked) {
+                    showMemory(i);
+                } else {
+                    unlockAchievement(i, true);
+                }
+            });
+            
+            container.appendChild(tile);
+        });
+
+        let score = 0;
+        let heartsCollected = 0;
+        const scoreEl = document.getElementById('score');
+        const progressText = document.getElementById('progressText');
+
+        function unlockAchievement(index, showMemory = false) {
+            const el = document.getElementById('achv-' + index);
+            if (el.dataset.unlocked) return;
+            
+            el.dataset.unlocked = '1';
+            el.querySelector('div:nth-child(3)').classList.remove('hidden');
+            el.classList.add('ring-2', 'ring-black/50', 'transform', 'scale-105');
+            document.getElementById('currentUnlocked').textContent = ACHIEVEMENTS[index];
+            score += 100;
+            scoreEl.textContent = score;
+            playPing(880 + Math.random() * 400, 0.08);
+            confettiBurst(80);
+            
+            // Update heart
+            const heartEl = document.getElementById('heart-' + index);
+            heartEl.innerHTML = '❤️';
+            heartEl.className = 'text-2xl text-red-500 transform scale-110 transition-transform duration-300';
+            heartsCollected++;
+            progressText.textContent = `${heartsCollected}/${ACHIEVEMENTS.length} hearts collected`;
+            
+            setTimeout(() => {
+                el.classList.remove('scale-105', 'ring-2', 'ring-black/50');
+                heartEl.classList.remove('scale-110');
+            }, 900);
+
+            if (showMemory) {
+                setTimeout(() => showMemory(index), 1000);
+            }
+
+            // Check if all hearts collected
+            if (heartsCollected === ACHIEVEMENTS.length) {
+                setTimeout(() => {
+                    showFinalLetter();
+                }, 2000);
+            }
+        }
+
+        function showMemory(index) {
+            const modal = document.getElementById('memoryModal');
+            const title = document.getElementById('memoryTitle');
+            const content = document.getElementById('memoryContent');
+            const heartAnim = document.getElementById('heartAnimation');
+            
+            title.textContent = ACHIEVEMENTS[index];
+            content.textContent = MEMORIES[index];
+            
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.add('opacity-100');
+                heartAnim.classList.add('heart-animation');
+            }, 10);
+            
+            // Reset animation for next time
+            setTimeout(() => {
+                heartAnim.classList.remove('heart-animation');
+            }, 1500);
+        }
+
+        function showFinalLetter() {
+            const modal = document.getElementById('letterModal');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.add('opacity-100');
+                confettiBurst(300);
+                playPing(1200, 0.2);
+            }, 10);
+        }
+
+        document.getElementById('closeMemory').addEventListener('click', () => {
+            const modal = document.getElementById('memoryModal');
+            modal.classList.remove('opacity-100');
+            setTimeout(() => modal.classList.add('hidden'), 300);
+        });
+
+        document.getElementById('closeLetter').addEventListener('click', () => {
+            const modal = document.getElementById('letterModal');
+            modal.classList.remove('opacity-100');
+            setTimeout(() => modal.classList.add('hidden'), 500);
+        });
+
+        function playPing(f = 880, t = 0.06) {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const o = ctx.createOscillator();
+                const g = ctx.createGain();
+                o.type = 'sine';
+                o.frequency.value = f;
+                g.gain.value = 0.05;
+                o.connect(g); g.connect(ctx.destination);
+                o.start();
+                g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + t);
+                setTimeout(()=>{try{o.stop(); ctx.close();}catch(e){}}, t*1000+30);
+            } catch(e){}
+        }
+
+        const canvas = document.getElementById('confetti');
+        const ctx = canvas.getContext('2d');
+        let W = canvas.width = innerWidth;
+        let H = canvas.height = innerHeight;
+        window.addEventListener('resize', ()=>{ W = canvas.width = innerWidth; H = canvas.height = innerHeight; });
+
+        // Realistic fireworks system
+        class Firework {
+            constructor(x, y, targetY) {
+                this.x = x;
+                this.y = y;
+                this.targetY = targetY;
+                this.speed = 3 + Math.random() * 2;
+                this.color = `hsl(${Math.random() * 360}, 100%, 60%)`;
+                this.trail = [];
+                this.exploded = false;
+                this.particles = [];
+            }
+            
+            update() {
+                if (!this.exploded) {
+                    this.y -= this.speed;
+                    this.trail.push({x: this.x, y: this.y});
+                    if (this.trail.length > 5) this.trail.shift();
+                    
+                    if (this.y <= this.targetY) {
+                        this.explode();
+                    }
+                } else {
+                    for (let i = this.particles.length - 1; i >= 0; i--) {
+                        const p = this.particles[i];
+                        p.x += p.vx;
+                        p.y += p.vy;
+                        p.vy += 0.05;
+                        p.life--;
+                        
+                        if (p.life <= 0) {
+                            this.particles.splice(i, 1);
+                        }
+                    }
+                }
+            }
+            
+            explode() {
+                this.exploded = true;
+                const particleCount = 80 + Math.floor(Math.random() * 40);
+                const colors = [
+                    '#FF5252', '#FF4081', '#E040FB', '#7C4DFF', '#536DFE',
+                    '#448AFF', '#40C4FF', '#18FFFF', '#64FFDA', '#69F0AE',
+                    '#B2FF59', '#EEFF41', '#FFFF00', '#FFD740', '#FFAB40', '#FF6E40'
+                ];
+                
+                for (let i = 0; i < particleCount; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const speed = 2 + Math.random() * 3;
+                    this.particles.push({
+                        x: this.x,
+                        y: this.y,
+                        vx: Math.cos(angle) * speed,
+                        vy: Math.sin(angle) * speed,
+                        color: colors[Math.floor(Math.random() * colors.length)],
+                        size: 2 + Math.random() * 3,
+                        life: 60 + Math.floor(Math.random() * 40)
+                    });
+                }
+                playPing(600 + Math.random() * 400, 0.15);
+            }
+            
+            draw() {
+                if (!this.exploded) {
+                    // Draw trail
+                    for (let i = 0; i < this.trail.length; i++) {
+                        const point = this.trail[i];
+                        const alpha = i / this.trail.length;
+                        ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+                        ctx.beginPath();
+                        ctx.arc(point.x, point.y, 2, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                    
+                    // Draw firework
+                    ctx.fillStyle = this.color;
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, 3, 0, Math.PI * 2);
+                    ctx.fill();
+                } else {
+                    // Draw particles
+                    for (const p of this.particles) {
+                        const alpha = p.life / 100;
+                        ctx.fillStyle = p.color;
+                        ctx.globalAlpha = alpha;
+                        ctx.beginPath();
+                        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                    ctx.globalAlpha = 1;
+                }
+            }
+        }
+
+        let fireworks = [];
+        let lastFireworkTime = 0;
+        
+        function launchFirework() {
+            const x = Math.random() * W;
+            const targetY = 100 + Math.random() * (H / 3);
+            fireworks.push(new Firework(x, H, targetY));
+            lastFireworkTime = Date.now();
+        }
+        
+        function updateFireworks() {
+            for (let i = fireworks.length - 1; i >= 0; i--) {
+                const firework = fireworks[i];
+                firework.update();
+                firework.draw();
+                
+                if (firework.exploded && firework.particles.length === 0) {
+                    fireworks.splice(i, 1);
+                }
+            }
+            
+            // Auto-launch fireworks occasionally
+            const now = Date.now();
+            if (now - lastFireworkTime > 800 && Math.random() < 0.02 && fireworks.length < 8) {
+                launchFirework();
+            }
+        }
+        
+        function animate() {
+            ctx.clearRect(0, 0, W, H);
+            updateFireworks();
+            requestAnimationFrame(animate);
+        }
+        
+        animate();
+
+        document.getElementById('fireworksBtn').addEventListener('click', ()=>{
+            startFireworksShow();
+            playPing(520, 0.12);
+        });
+
+        document.getElementById('unlockBtn').addEventListener('click', () => {
+            const locked = ACHIEVEMENTS.map((_,i)=>i).filter(i => !document.getElementById('achv-'+i).dataset.unlocked);
+            if (!locked.length) return alert('All achievements unlocked! 🎉');
+            const choice = locked[Math.floor(Math.random()*locked.length)];
+            unlockAchievement(choice);
+        });
+
+        const terminal = document.getElementById('terminalText');
+        function typeText(txt, delay=18) {
+            return new Promise(res=>{
+                let i=0;
+                terminal.innerHTML = '';
+                const id = setInterval(()=> {
+                    terminal.innerHTML += txt.charAt(i) === '\n' ? '<br/>' : txt.charAt(i);
+                    i++;
+                    if (i >= txt.length) { clearInterval(id); res(); }
+                }, delay);
+            });
+        }
+
+        async function startHackerPrank() {
+            const seq = [
+                "Initializing random kernel...\n",
+                "Establishing connection to server WORLD-LOL...\n",
+                `Scanning for target: ${BOYFRIEND_NAME}...\n`,
+                "Target found. Age: 19\n",
+                "Extracting birthday data...\n",
+                "Injecting confetti.exe... [OK]\n",
+                "Launching surprise interface in 3...2...1...\n"
+            ];
+            document.getElementById('terminal').classList.add('ring-2','ring-red-400/30');
+            for (let s of seq){ await typeText(s, 12); await new Promise(r=>setTimeout(r, 550)); }
+            await typeText(">>> SURPRISE! HAPPY 19th BIRTHDAY MY BOY! 🎉\n>>> You have been pranked with love.\n", 14);
+            confettiBurst(220);
+            document.getElementById('currentUnlocked').textContent = "Pranked with love 💖";
+            playPing(1200, 0.18);
+            document.getElementById('terminal').classList.remove('ring-2','ring-red-400/30');
+        }
+        document.getElementById('hackerBtn').addEventListener('click', startHackerPrank);
+
+        const audio = document.getElementById('sampleAudio');
+
+document.getElementById('playSongBtn').addEventListener('click', () => {
+    if (!audio.src) {
+        alert("No audio source found — set <audio id='sampleAudio' src='starboy_remix.mp3'> correctly.");
+        return;
+    }
+
+    if (audio.paused) {
+        audio.play();
+        document.getElementById('playSongBtn').textContent = '⏸ Pause Track';
+    } else {
+        audio.pause();
+        document.getElementById('playSongBtn').textContent = '▶ Play Sample Track';
+    }
+});
+
+// Example auto-unlock (optional)
+setTimeout(() => { 
+    unlockAchievement(0, true); 
+}, 2000);
+        setTimeout(()=> { unlockAchievement(0); }, 1200);
+    </script>
+    
+    <script>
+        AOS.init();
+        feather.replace();
+
+        /******** BALLOONS GENERATOR ********/
+        const balloonColors = ["#ff6f91", "#ff9671", "#ffc75f", "#f9f871", "#00c9a7", "#845ec2"];
+        const balloonContainer = document.getElementById("balloonContainer");
+
+        function createBalloon() {
+            const balloon = document.createElement("div");
+            balloon.classList.add("balloon");
+            balloon.style.left = Math.random() * 100 + "vw";
+            balloon.style.background = balloonColors[Math.floor(Math.random() * balloonColors.length)];
+            balloon.style.animationDuration = 10 + Math.random() * 8 + "s";
+            balloonContainer.appendChild(balloon);
+
+            setTimeout(() => { balloon.remove(); }, 15000);
+        }
+        setInterval(createBalloon, 800);
+    </script>
+</body>
+</html>  
